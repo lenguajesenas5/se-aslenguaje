@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lenguaje de Señas</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image"></script>
+</head>
+<body>
+    <video id="webcam" autoplay></video>
+    <p id="output">Esperando...</p>
+
+    <script>
+        const modelURL = "https://teachablemachine.withgoogle.com/models/_LSTlDBKk/";
+        let model, webcam, maxPredictions;
+
+        async function init() {
+            model = await tmImage.load(modelURL + "model.json", modelURL + "metadata.json");
+            maxPredictions = model.getTotalClasses();
+
+            webcam = document.getElementById("webcam");
+            navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+                webcam.srcObject = stream;
+            });
+
+            predict();
+        }
+
+        async function predict() {
+            setInterval(async () => {
+                const prediction = await model.predict(webcam);
+                let bestPrediction = prediction.reduce((prev, curr) => (prev.probability > curr.probability ? prev : curr));
+                document.getElementById("output").innerText = bestPrediction.className;
+            }, 1000);
+        }
+
+        init();
+    </script>
+</body>
+</html>
